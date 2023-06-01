@@ -1,3 +1,4 @@
+library(tidyverse)
 # Task 1
 # Define the given probabilities
 P_A <- 1/4
@@ -91,31 +92,38 @@ P_D2_given_D1 <- P_D1
 P_D2_given_D1
 
 # Task 4
+
 P_A <- 0.5  # Prior probability of the shipment being from Factory A
 P_B <- 0.5  # Prior probability of the shipment being from Factory B
-P_Pos_given_A <- 0.8  # Probability of a positive test given the shipment is from Factory A
-P_Pos_given_B <- 0.65  # Probability of a positive test given the shipment is from Factory B
+P_PosA_given_A <- 0.8  # Probability of a positive test given the shipment is from Factory A
+P_PosA_given_B <- 0.65  # Probability of a positive test given the shipment is from Factory B
+P_PosB_given_A <- 0.2
+P_PosA_given_B <- 0.35
 
-P_Pos <- P_Pos_given_A * P_A + P_Pos_given_B * P_B
+# P(A|Al_A) = (P(Al_A|A) * P(A)) / ((P(Al_A|A) * P(A)) + (P(Al_A|B) * P(B)))
 
-P_A_given_Pos <- (P_Pos_given_A * P_A) / P_Pos
+P_PosA <- P_PosA_given_A * P_A + P_PosA_given_B * P_B
 
-P_A_given_Pos
+P_A_given_PosA <- (P_PosA_given_A * P_A) / P_PosA
+
+P_A_given_PosA
 
 # Task 4 - 5 Countinued 
 
-# Now let's incorporate the information about defective products.
-# P(A|Pos, D) = (P(Pos, D|A) * P(A)) / P(Pos, D)
 
-# P(Pos, D|A) = P(Pos|A) * P(D|A)
-# P(Pos, D|B) = P(Pos|B) * P(D|B)
+# P(A) = 0.5 (Prior probability of product from Factory A)
+# P(B) = 0.5 (Prior probability of product from Factory B)
+# P(D|A) = 0.1 (Probability of defective product given it is from Factory A)
+# P(D|B) = 0.2 (Probability of defective product given it is from Factory B)
+# P(Al_A|A) = 0.8 (Probability algorithm classifies product from Factory A as A)
+# P(Al_A|B) = 0.35 (Probability algorithm classifies product from Factory B as A)
 
-# P(Pos, D) = P(Pos, D|A) * P(A) + P(Pos, D|B) * P(B)
 
-P_A_given_Pos_D <- (P_Pos_given_A * 0.1 * P_A) / (P_Pos_given_A * 0.1 * P_A + P_Pos_given_B * 0.2 * P_B)
+# P(A|D, Al_A) = (P(D|A) * P(A) * P(Al_A|A)) / ((P(D|A) * P(A) * P(Al_A|A)) + (P(D|B) * P(B) * P(Al_A|B)))
 
-P_A_given_Pos_D
+P_A_given_PosA_D = (P_D1_given_A * P_A * P_PosA_given_A) / ((P_D1_given_A * P_A * P_PosA_given_A) + (P_D1_given_B*P_B*P_PosA_given_B))
 
+P_A_given_PosA_D
 
 # Task 6
 # Assuming a prior belief that the proportion of land on Earth is normally distributed
