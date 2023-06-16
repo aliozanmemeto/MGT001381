@@ -15,13 +15,25 @@ aging = aging[complete.cases(aging),]
 summary(aging)
 
 plot(density(aging$Age), main = "Density Plot of Age")
+hist(aging$Age)
+# By plotting the age data, we observe two distinct groups: one consisting of individuals under 30 and the other comprising individuals over 60.
 plot(density(aging$RiskSeeking), main = "Density Plot of RiskSeeking")
+hist(aging$RiskSeeking)
+# By examining the plot, we can observe that all the values fall within the range of 0.25 and 0.75 potentially with normally or beta distributed
 plot(density(aging$DecisionQuality), main = "Density Plot of DecisionQuality")
+hist(aging$DecisionQuality)
+# We can observe more a normal distribution
 plot(density(aging$Speed), main = "Density Plot of Speed")
+plot(aging$Speed)
+hist(aging$Speed)
+# From the plot, we can potentially identify two primary speed groups. On the other hand, the histogram suggests a distribution that resembles a normal distribution with a considerable variance.
 plot(density(aging$NegAffect), main = "Density Plot of NegAffect")
+hist(aging$NegAffect)
+# The distribution of this variable appears to resemble that of a beta distribution.
 plot(density(aging$Numeracy), main = "Density Plot of Numeracy")
+hist(aging$Numeracy)
+# The numeracy variable appears to follow a beta distribution, with a concentration of values skewed towards 1 (alpha > beta).
 
-aging$NegAffect
 
 # Overall, based on the information provided, we see a mix of roughly symmetrical
 # distributions (RiskSeeking, DecisionQuality, Speed) and slightly skewed distributions
@@ -34,8 +46,6 @@ mean_age <- mean(aging$Age)
 median_age <- median(aging$Age)
 
 rug(c(mean_age, median_age), side = 1, lwd = 2)
-legend("topright", legend = c("Mean", "Median"), pch = 15, lwd = 2, col = "black")
-
 
 # Task 3: Add a new variable AG to group people into 2 age groups. Mean or Medan either of them can be used
 aging$AG <- ifelse(aging$Age <= median(aging$Age), 1, 2)
@@ -44,8 +54,9 @@ aging$AG <- ifelse(aging$Age <= median(aging$Age), 1, 2)
 # Build and estimate a Gaussian model for the variables DecisionQuality and
 # RiskSeeking (separately) using the quap() function from the rethinking package.
 
+# For both variables, normal distribution seems to be a good fit. Assuming we had a prior knowledge of how variables are distributed we can fit a gausian models with very low standard deviations.
 # Fit the model using quap()
-
+set.seed(1234)
 model_dq <- quap(
   alist(
     DecisionQuality ~ dnorm(mu, sigma),
@@ -84,13 +95,15 @@ rs_hpdi
 
 # Decision Quality: The HPDI for the mean parameter (mu) is [0.634, 0.666] with a 95%confidence level.
 # Risk Seeking: The HPDI for the mean parameter (mu) is [0.455, 0.487] with a 95% confidence level.
-# For Decision Quality, the average falls between 0.634 and 0.666, while for Risk 
+# For Decision Quality, the average falls between 0.633 and 0.666, while for Risk 
 # Seeking, it ranges from 0.455 to 0.487.
 
+
+# By examining the estimation of Decision Quality, with a mean of 0.65, it becomes apparent that approximately two-thirds of people tend to choose the option with a higher expected return. This suggests that they are aiming to maximize their expected return by considering the return of each event multiplied by its probability of occurrence. 
+# Furthermore, the standard deviation (sd) value of 0.09 indicates that with around 95% confidence, people generally prefer this approach, maximizing their expected return for at least 50% of the choices they make.
 # In summary, the analysis suggests that Decision Quality tends to be relatively high, 
 #  Risk Seeking behavior being exhibited by individuals on average. 
-# However, it's important to consider the specific details of the model and data used
-# when interpreting these results.
+# 
 
 # 5
 
@@ -112,7 +125,6 @@ model_old <- quap(
   data = subset(aging, AG == 2)
 )
 
-
 samples_young <- extract.samples(model_young)$mu
 samples_old <- extract.samples(model_old)$mu
 
@@ -120,6 +132,7 @@ difference <- samples_young - samples_old
 
 hist(difference, breaks = 30, col = "lightblue", xlab = "Difference in Means",
      main = "Distribution of Difference in Means")
+HPDI(difference, prob = 0.95)
 
 
 # 6
@@ -131,18 +144,25 @@ aging$Speed <- standardize(aging$Speed)
 aging$NegAffect <- standardize(aging$NegAffect)
 aging$Numeracy <- standardize(aging$Numeracy)
 
+# 7
+plot(aging$Numeracy, aging$DecisionQuality)
+# There is more or less a positive relationship that can be expected however with very high variance
+
 model_dq_num <- quap(
   alist(
     DecisionQuality ~ dnorm(mu, sigma),
     mu <- a + b_num * Numeracy,
     a ~ dnorm(0, 1),
-    b_num ~ dunif(0, 1),
+    b_num ~ dunif(0, 1), 
     sigma ~ dexp(1)
   ),
   data = aging
 )
 
 precis(model_dq_num)
+
+plot(aging$Speed, aging$DecisionQuality)
+# The relation seems to be very less significant this time, with very high variance
 
 model_dq_speed <- quap(
   alist(
@@ -157,12 +177,14 @@ model_dq_speed <- quap(
 
 precis(model_dq_speed)
 
+# There might be more or less a negative relationship
+
 model_dq_neg <- quap(
   alist(
     DecisionQuality ~ dnorm(mu, sigma),
     mu <- a + b_neg * NegAffect,
     a ~ dnorm(0, 1),
-    b_neg ~ dnorm(0, 1),
+    b_neg ~ dnorm(-0.5,0.5),
     sigma ~ dexp(1)
   ),
   data = aging
@@ -170,18 +192,28 @@ model_dq_neg <- quap(
 
 precis(model_dq_neg)
 
+# Numeracy (b = 0.36) shows a positive relationship with Decision Quality, indicating that better numeric abilities are associated with higher expected value in decision-making.
+
+# Speed (b = 0.22) also exhibits a positive relationship with Decision Quality, suggesting that faster cognitive processing relates to better decision outcomes.
+
+# NegAffect (b = -0.15) demonstrates a negative relationship with Decision Quality, indicating that higher levels of negative emotions are associated with lower decision quality.
+
+
+# We might expect a slight negative relationship
+
 model_rs_num <- quap(
   alist(
     RiskSeeking ~ dnorm(mu, sigma),
     mu <- a + b_num * Numeracy,
     a ~ dnorm(0, 1),
-    b_num ~ dnorm(0, 1),
+    b_num ~ dnorm(-0.5,0.25),
     sigma ~ dexp(1)
   ),
   data = aging
 )
 
 precis(model_rs_num)
+
 
 model_rs_speed <- quap(
   alist(
@@ -224,13 +256,19 @@ precis(model_rs_neg)
 
 # 8
 
+# We can hypothesize that the Numeracy variable acts as a confounder for both Speed and DecisionQuality. Since Numeracy involves the ability to work with numeric information, it is expected to positively influence both processing speed and the quality of decisions. In task 7, we have already demonstrated the direct influence of Numeracy on DecisionQuality (Num --> DQ).
+
+# Additionally, we anticipate that Speed serves as a mediator between Numeracy and DecisionQuality (Num --> Speed --> DQ). Speed is likely to play a role in influencing DecisionQuality, acting as an intermediate factor between Numeracy and the quality of decisions.
+
+# To explore these relationships further, we will construct a model that estimates the mean of DecisionQuality using Speed and Numeracy as linear predictors.
+
 model_speed_num_dq <- quap(
   alist(
     DecisionQuality ~ dnorm(mu, sigma),
     mu <- a + b_speed * Speed + b_num * Numeracy,
     a ~ dnorm(0, 1),
-    b_speed ~ dnorm(0, 1),
-    b_num ~ dnorm(0, 1),
+    b_speed ~ dnorm(0.5,0.5),
+    b_num ~ dnorm(0.5,0.5),
     sigma ~ dexp(1)
   ),
   data = aging
@@ -243,7 +281,7 @@ model_speed_dq <- quap(
     DecisionQuality ~ dnorm(mu, sigma),
     mu <- a + b_speed * Speed,
     a ~ dnorm(0, 1),
-    b_speed ~ dnorm(0, 1),
+    b_speed ~ dnorm(0.5,0.5),
     sigma ~ dexp(1)
   ),
   data = aging
@@ -256,13 +294,15 @@ model_num_dq <- quap(
     DecisionQuality ~ dnorm(mu, sigma),
     mu <- a + b_num * Numeracy,
     a ~ dnorm(0, 1),
-    b_num ~ dnorm(0, 1),
+    b_num ~ dnorm(0.5,0.5),
     sigma ~ dexp(1)
   ),
   data = aging
 )
 
 precis(model_num_dq)
+
+# # We can notice how b_num hasn't much changed from the model with only Numeracy as predictor (b=0.36), while the b_spd has decreased (0.12 vs 0.22), probably stating the higher relevance of Numeracy when controlling for the Numeracy variable. 
 
 # The coefficient estimate for the b_speed parameter represents the direct effect of speed on decision quality, while the coefficient estimate for the b_num parameter represents the direct effect of numeracy on decision quality.
 
@@ -285,3 +325,5 @@ p <- ggplot(aging, aes(y = Speed, x = Numeracy_fact)) +
 
 # Tilt x-axis ticks by 45 degrees
 p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
