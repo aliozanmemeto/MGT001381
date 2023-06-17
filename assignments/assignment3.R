@@ -93,17 +93,24 @@ rs_samples <- extract.samples(model_rs, 1000)
 rs_hpdi <- HPDI(rs_samples$mu, prob = 0.95)
 rs_hpdi
 
-# Decision Quality: The HPDI for the mean parameter (mu) is [0.634, 0.666] with a 95%confidence level.
-# Risk Seeking: The HPDI for the mean parameter (mu) is [0.455, 0.487] with a 95% confidence level.
-# For Decision Quality, the average falls between 0.633 and 0.666, while for Risk 
-# Seeking, it ranges from 0.455 to 0.487.
+# The findings suggest that, on average, approximately 65% of respondents in the survey opted for the choice that offered a higher expected payoff, as indicated by the mean (mu) of decision quality. The estimated standard deviation (sigma) of 0.09 for decision quality suggests that there was relatively little variation among participants, implying a high level of confidence in their tendency to select the option with the higher expected payoff.
 
+# In contrast, the estimated mean coefficient (mu) of 0.47 for the variable "Risk Seeking" indicates that less than half of the observations displayed a preference for the less likely option, indicating a tendency towards risk aversion or, at the very least, a lack of risk-seeking behavior. The corresponding sigma value of 0.09 also suggests low variability, indicating a consistent level of risk-seeking behavior observed across the participants.
 
-# By examining the estimation of Decision Quality, with a mean of 0.65, it becomes apparent that approximately two-thirds of people tend to choose the option with a higher expected return. This suggests that they are aiming to maximize their expected return by considering the return of each event multiplied by its probability of occurrence. 
-# Furthermore, the standard deviation (sd) value of 0.09 indicates that with around 95% confidence, people generally prefer this approach, maximizing their expected return for at least 50% of the choices they make.
-# In summary, the analysis suggests that Decision Quality tends to be relatively high, 
-#  Risk Seeking behavior being exhibited by individuals on average. 
-# 
+#Plotting the sample distribution to see if the model is a reasonable fit:
+
+dq_samples %>%  ggplot(aes(x = mu)) +
+  geom_density(color = "#552583", linewidth = 1, alpha = .1) +
+  labs(x = expression(mu), 
+       y = "Density") +
+  theme_minimal()
+
+rs_samples %>%  ggplot(aes(x = mu)) +
+  geom_density(color = "#552583", linewidth = 1, alpha = .1) +
+  labs(x = expression(mu), 
+       y = "Density") +
+  theme_minimal()
+
 
 # 5
 
