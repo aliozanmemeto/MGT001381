@@ -334,3 +334,44 @@ p <- ggplot(aging, aes(y = Speed, x = Numeracy_fact)) +
 p + theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
+
+
+
+dat <- list(
+  Numeracy = aging$Numeracy,
+  AG = aging$AG,
+  DecisionQuality = aging$DecisionQuality,
+  RiskSeeking= aging$RiskSeeking
+  
+)
+
+
+model1 <- ulam(  
+  alist(
+  DecisionQuality ~ dnorm(mu, sigma),
+  mu <- a[AG] + b_num[AG] * Numeracy,
+  a[AG] ~ dnorm(0, 1),
+  b_num[AG] ~ dnorm(0, 1),
+  sigma ~ dexp(1)
+),
+data = dat, chains = 4, cores = 4)
+
+precis(model1, depth=2)
+traceplot(model1)
+
+
+
+model2 <- ulam(  
+  alist(
+    RiskSeeking ~ dnorm(mu, sigma),
+    mu <- a[AG] + b_num[AG] * Numeracy,
+    a[AG] ~ dnorm(0, 1),
+    b_num[AG] ~ dnorm(0, 1),
+    sigma ~ dexp(1)
+  ),
+  data = dat, chains = 4, cores = 4)
+
+precis(model2, depth=2)
+traceplot(model2)
+
+
